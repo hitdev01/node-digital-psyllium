@@ -1,5 +1,5 @@
 var PSYAPP = (function () {
-  var socket = io.connect('http://219.166.99.229:8888');
+  var socket = io.connect('http://node-digital-psyllium.herokuapp.com:8888');
   var uuid = uuid();
   var beacon = 'aaa';
 
