@@ -4,7 +4,7 @@ var express = require("express");
 var app = express();
 var port = process.env.PORT || 5000;
 var connects = [];
-var colors = new Array('#000000','#FFFFFF','#F0F000','#FF0000','#00FF00','#0000FF');
+var colors = new Array('#FFFFFF','#F0F000','#FF0000','#00FF00','#0000FF');
 var color = '#FFFFFF';
 
 app.use(express.static(__dirname + "/"));
@@ -50,4 +50,4 @@ wss.on('connection', function(ws) {
 setInterval(function chengecolor() {
   var index = Math.floor(Math.random() * (colors.length));
   color = colors[index];
-}, 10000);
+}, 5000);
