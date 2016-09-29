@@ -5,7 +5,12 @@ var app = express();
 var port = process.env.PORT || 5000;
 var connects = [];
 var colors = new Array('#FFFFFF','#F0F000','#FF0000','#00FF00','#0000FF');
-var color = '#FFFFFF';
+var count = 0;
+var data = [
+  {beacon: 'B9407F30-F5F8-466E-AFF9-25556B57FE6D:63702:403', color: '#FFFFFF'},
+  {beacon: 'B9407F30-F5F8-466E-AFF9-25556B57FE6D:10030:8157', color: '#FFFFFF'},
+  {beacon: 'B9407F30-F5F8-466E-AFF9-25556B57FE6D:19327:30379', color: '#FFFFFF'}
+];
 
 app.use(express.static(__dirname + "/"));
 
@@ -17,12 +22,10 @@ console.log("http server listening on %d", port);
 var wss = new WebSocketServer({server: server})
 console.log("websocket server created");
 
-
-
 wss.on('connection', function(ws) {
   var id = setInterval(function() {
-    ws.send(color, function() {  });
-    console.log('send messag['+ color +']');
+    ws.send(data, function() {  });
+    console.log('send message: '+ JSON.stringify(data));
   }, 1000);
 
   console.log('websocket connection open');
@@ -48,6 +51,30 @@ wss.on('connection', function(ws) {
 })
 
 setInterval(function chengecolor() {
-  var index = Math.floor(Math.random() * (colors.length));
-  color = colors[index];
+  var color1;
+  var color2;
+  var color3;
+  // var index = Math.floor(Math.random() * (colors.length));
+  if (count < colors.length) {
+    count = count + 1;
+  } else {
+    count = 0;
+  }
+  if (count < colors.length - 3) {
+    color1 = colors[count];
+    color2 = colors[count+1];
+    color3 = colors[count+2];
+  } else if (count < colors.length - 2) {
+    color1 = colors[count];
+    color2 = colors[count+1];
+    color3 = colors[0];
+  } else if (count < colors.length - 1) {
+    color1 = colors[count];
+    color2 = colors[0];
+    color3 = colors[1];
+  }
+  data[0].color = color1;
+  data[1].color = color2;
+  data[2].color = color3;
+
 }, 5000);
