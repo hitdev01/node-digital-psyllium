@@ -55,7 +55,7 @@ setInterval(function chengecolor() {
   var color2;
   var color3;
   // var index = Math.floor(Math.random() * (colors.length));
-  if (count < colors.length) {
+  if (count < colors.length - 2) {
     count = count + 1;
   } else {
     count = 0;
