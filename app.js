@@ -79,4 +79,4 @@ setInterval(function chengecolor() {
   data[1].color = color2;
   data[2].color = color3;
 
-}, 5000);
+}, 30000);
