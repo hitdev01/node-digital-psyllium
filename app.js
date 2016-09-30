@@ -61,17 +61,14 @@ setInterval(function chengecolor() {
     count = 0;
   }
   if (count < colors.length - 3) {
-    console.log('count < colors.length - 3');
     color1 = colors[count];
     color2 = colors[count+1];
     color3 = colors[count+2];
   } else if (count < colors.length - 2) {
-    console.log('count < colors.length - 2');
     color1 = colors[count];
     color2 = colors[count+1];
     color3 = colors[0];
   } else if (count < colors.length - 1) {
-    console.log('count < colors.length - 1');
     color1 = colors[count];
     color2 = colors[0];
     color3 = colors[1];

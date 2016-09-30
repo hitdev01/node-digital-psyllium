@@ -6,7 +6,7 @@
       var host = location.origin.replace(/^http/, 'ws')
       var ws = new WebSocket(host);
       ws.onmessage = function (event) {
-        var data = event.data;
+        var data = JSON.parse(event.data);
         for (var i=0; i<data.length; i++) {
           var beacon = data[i].beacon;
           var color = data[i].color;
