@@ -24,7 +24,7 @@ console.log("websocket server created");
 
 wss.on('connection', function(ws) {
   var id = setInterval(function() {
-    ws.send(data, function() {  });
+    ws.send(JSON.stringify(data), function() {  });
     console.log('send message: '+ JSON.stringify(data));
   }, 1000);
 
@@ -61,17 +61,22 @@ setInterval(function chengecolor() {
     count = 0;
   }
   if (count < colors.length - 3) {
+    console.log('count < colors.length - 3');
     color1 = colors[count];
     color2 = colors[count+1];
     color3 = colors[count+2];
   } else if (count < colors.length - 2) {
+    console.log('count < colors.length - 2');
     color1 = colors[count];
     color2 = colors[count+1];
     color3 = colors[0];
   } else if (count < colors.length - 1) {
+    console.log('count < colors.length - 1');
     color1 = colors[count];
     color2 = colors[0];
     color3 = colors[1];
+  } else {
+    console.log('else count:' + count + ', colors.length' + colors.length);
   }
   data[0].color = color1;
   data[1].color = color2;
