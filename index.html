@@ -6,14 +6,29 @@
       var host = location.origin.replace(/^http/, 'ws')
       var ws = new WebSocket(host);
       ws.onmessage = function (event) {
-        var color = event.data;
-        $('#color').text(color);
+        var data = event.data;
+        for (var i=0; i<data.length; i++) {
+          var beacon = data[i].beacon;
+          var color = data[i].color;
+          $('#beacon' + i).text(beacon);
+          $('#color' + i).text(color);
+        }
         $(document.body).css('background', color);
       };
     </script>
   </head>
   <body>
-    <div id="color"></div>
-    <div id="beacon"></div>
+    <p>
+      <div id="beacon0"></div>
+      <div id="color0"></div>
+    </p>
+    <p>
+      <div id="beacon1"></div>
+      <div id="color1"></div>
+    </p>
+    <p>
+      <div id="beacon2"></div>
+      <div id="color2"></div>
+    </p>
   </body>
 </html>
