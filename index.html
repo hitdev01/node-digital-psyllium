@@ -1,34 +1,176 @@
 <html>
   <head>
     <title>Digital Psyllium</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>
-      var host = location.origin.replace(/^http/, 'ws')
-      var ws = new WebSocket(host);
-      ws.onmessage = function (event) {
-        var data = JSON.parse(event.data);
-        for (var i=0; i<data.length; i++) {
-          var beacon = data[i].beacon;
-          var color = data[i].color;
-          $('#beacon' + i).text(beacon);
-          $('#color' + i).text(color);
-        }
-        $(document.body).css('background', color);
-      };
-    </script>
   </head>
   <body>
-    <p>
-      <div id="beacon0"></div>
-      <div id="color0"></div>
-    </p>
-    <p>
+    <div id="div0" style="float:left;height:300px;width:300px">
+        <div id="beacon0"></div>
+        <div id="color0"></div>
+    </div>
+    <div id="div1" style="float:left;height:300px;width:300px">
       <div id="beacon1"></div>
       <div id="color1"></div>
-    </p>
-    <p>
+    </div>
+    <div id="div2" style="float:left;height:300px;width:300px">
       <div id="beacon2"></div>
       <div id="color2"></div>
-    </p>
+    </div>
+    <div style="clear:both;">
+      <canvas id="canvas"></canvas>
+    </div>
+    <button id="start">start</button>
+    <button id="stop">stop</button>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/color/jquery.color-2.1.2.min.js" integrity="sha256-H28SdxWrZ387Ldn0qogCzFiUDDxfPiNIyJX7BECQkDE=" crossorigin="anonymous"></script>
+    <script>
+      var beacon1 = "B9407F30-F5F8-466E-AFF9-25556B57FE6D:63702:403";
+      var beacon2 = "B9407F30-F5F8-466E-AFF9-25556B57FE6D:10030:8157";
+      var beacon3 = "B9407F30-F5F8-466E-AFF9-25556B57FE6D:19327:30379";
+      var div1color = ["#ff0505","#ff0582","#ff05ff","#8205ff","#0505ff","#0582ff","#05ffff","#05ff82","#05ff05","#82ff05","#ffff05","#ff8205"];
+      var div2color = ["#0505ff","#0582ff","#05ffff","#05ff82","#05ff05","#82ff05","#ffff05","#ff8205","#ff0505","#ff0582","#ff05ff","#8205ff"];
+      var div3color = ["#05ff05","#82ff05","#ffff05","#ff8205","#ff0505","#ff0582","#ff05ff","#8205ff","#0505ff","#0582ff","#05ffff","#05ff82"];
+      // var tick = [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000];
+
+      $(document).ready(function(){
+        var playing = false;
+
+        var host = location.origin.replace(/^http/, 'ws')
+        var ws = new WebSocket(host);
+        ws.onmessage = function (event) {
+          var data = JSON.parse(event.data);
+          for (var i=0; i<data.length; i++) {
+            var beacon = data[i].beacon;
+            var color = data[i].color;
+            $('#beacon' + i).text(beacon);
+            $('#color' + i).text(color);
+            $('#div' + i).css('background', color);
+          }
+        };
+
+        /*
+        * Canvas
+        */
+        // canvasを取得
+        var canvas = document.getElementById('canvas');
+        canvas.width = 900;
+        canvas.height = 288;
+
+        // canvasのcontextを取得
+        var canvasCtx = canvas.getContext('2d');
+        canvasCtx.fillStyle = 'rgb(16, 16, 24)';
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = 'rgb(124, 224, 255)';
+        // 初起表示
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(0, canvas.height / 2);
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+
+        /*
+         * Audio Analyser
+         */
+        var context = new AudioContext();
+        var buffer = null;
+        var source = context.createBufferSource();
+        var analyser = context.createAnalyser();
+
+        var request = new XMLHttpRequest();
+        request.open('GET', 'media/demo.mp3', true);
+        request.responseType = 'arraybuffer';
+        request.send();
+
+        request.onload = function () {
+          var res = request.response;
+          context.decodeAudioData(res, function (buf) {
+            // AudioNodeを作成
+            // bufferプロパティにAudioBufferを指定
+            buffer = buf;
+            // source.buffer = buffer;
+            // 音声出力先を指定
+            source.connect(context.destination);
+            // AnalyserNodeを指定
+            source.connect(analyser);
+
+            draw();
+          });
+        };
+        var draw = function() {
+          drawVisual = requestAnimationFrame(draw);
+
+          var dataArray = new Uint8Array(analyser.fftSize);
+          // dataArrayが解析されたデータで満たされる
+          analyser.getByteTimeDomainData(dataArray);
+
+          var sliceWidth = canvas.width / analyser.fftSize;
+
+          canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+          canvasCtx.beginPath();
+          canvasCtx.moveTo(0, canvas.height / 2);
+
+          for (var i = 0; i < analyser.fftSize; i++) {
+              var x = sliceWidth * i;
+              // dataArrayの中身は0から255の数値
+              var v = dataArray[i] / 128;
+              var y = v * canvas.height / 2;
+              canvasCtx.lineTo(x, y);
+              // $(document.body).css('background', 'rgb('+r+','+g+','+b+')');
+          }
+          canvasCtx.stroke();
+        };
+
+        $("#start").click(function() {
+          if (playing) { return };
+          source = context.createBufferSource();
+          analyser = context.createAnalyser();
+
+          source.buffer = buffer;
+          // 音声出力先を指定
+          source.connect(context.destination);
+          // AnalyserNodeを指定
+          source.connect(analyser);
+
+          // 再生開始
+          source.start(0);
+          playing = true;
+          sleepLoop(timeColor);
+      	});
+
+        $("#stop").click(function() {
+          // 再生終了
+          source.stop();
+          playing = false;
+        });
+
+        function timeColor(idx) {
+          var div1c = div1color[ idx % div1color.length ];
+          var div2c = div2color[ idx % div2color.length ];
+          var div3c = div3color[ idx % div3color.length ];
+          console.log(div1c + ', ' + div2c + ', ' + div3c);
+          ws.send(JSON.stringify([{"beacon": beacon1, "color": div1c}, {"beacon": beacon2, "color": div2c}, {"beacon": beacon3, "color": div3c}]));
+        }
+
+        function sleepLoop(_mainFunc) {
+          // var loopLimit = tick.length;
+          var mainFunc = _mainFunc;
+          var i = 0;
+          var func = function () {
+            // var interval = tick[i];
+            var interval = 1000;
+            var result = mainFunc(i);
+            if (result === false) { return; }
+            i++;
+            // if (i < loopLimit) {
+            if (playing) {
+              setTimeout(func, interval);
+            }
+            // }
+          }
+          func();
+        }
+
+      });
+    </script>
   </body>
 </html>
