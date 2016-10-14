@@ -23,20 +23,19 @@ var wss = new WebSocketServer({server: server})
 console.log("websocket server created");
 
 wss.on('connection', function(ws) {
-  var id = setInterval(function() {
-    ws.send(JSON.stringify(data), function() {  });
-    console.log('send message: '+ JSON.stringify(data));
-  }, 1000);
+  // var id = setInterval(function() {
+  //   ws.send(JSON.stringify(data), function() {  });
+  //   console.log('send message: '+ JSON.stringify(data));
+  // }, 1000);
 
   console.log('websocket connection open');
   // 接続してきたソケットを格納
   connects.push(ws);
   console.log('connected sockets: ' + connects.length);
 
-
   ws.on('message', function(message) {
-    console.log('get message['+ message +']');
-    broadcast(message);
+    console.log('[get message]'+ message);
+    ws.send(message);
   })
 
   ws.on('close', function() {
@@ -46,7 +45,7 @@ wss.on('connection', function(ws) {
         return (conn === ws) ? false : true;
     });
     console.log('connected sockets: ' + connects.length);
-    clearInterval(id);
+    // clearInterval(id);
   })
 })
 
