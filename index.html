@@ -1,21 +1,6 @@
 <html>
   <head>
     <title>Digital Psyllium</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>
-      var host = location.origin.replace(/^http/, 'ws')
-      var ws = new WebSocket(host);
-      ws.onmessage = function (event) {
-        var data = JSON.parse(event.data);
-        for (var i=0; i<data.length; i++) {
-          var beacon = data[i].beacon;
-          var color = data[i].color;
-          $('#beacon' + i).text(beacon);
-          $('#color' + i).text(color);
-        }
-        $(document.body).css('background', color);
-      };
-    </script>
   </head>
   <body>
     <p>
@@ -30,5 +15,114 @@
       <div id="beacon2"></div>
       <div id="color2"></div>
     </p>
+    <div id="r"></div>
+    <div id="g"></div>
+    <div id="b"></div>
+    <canvas id="canvas"></canvas>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+      var host = location.origin.replace(/^http/, 'ws')
+      var ws = new WebSocket(host);
+      ws.onmessage = function (event) {
+        var data = JSON.parse(event.data);
+        for (var i=0; i<data.length; i++) {
+          var beacon = data[i].beacon;
+          var color = data[i].color;
+          $('#beacon' + i).text(beacon);
+          $('#color' + i).text(color);
+        }
+        // $(document.body).css('background', color);
+      };
+
+      /*
+      * Canvas
+      */
+      // canvasを取得
+      var canvas = document.getElementById('canvas');
+      canvas.width = 512;
+      canvas.height = 288;
+
+      // canvasのcontextを取得
+      var canvasCtx = canvas.getContext('2d');
+      canvasCtx.fillStyle = 'rgb(16, 16, 24)';
+      canvasCtx.lineWidth = 2;
+      canvasCtx.strokeStyle = 'rgb(124, 224, 255)';
+      // 初起表示
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(0, canvas.height / 2);
+      canvasCtx.lineTo(canvas.width, canvas.height / 2);
+      canvasCtx.stroke();
+
+
+      /*
+       * Audio Analyser
+       */
+      var context = new AudioContext();
+      var buffer = null;
+      var source = context.createBufferSource();
+      var analyser = context.createAnalyser();
+
+      // var distortion = context.createWaveShaper();
+      // var gainNode = context.createGain();
+      // var biquadFilter = context.createBiquadFilter();
+      // var convolver = context.createConvolver();
+
+      var request = new XMLHttpRequest();
+      request.open('GET', 'media/demo.mp3', true);
+      request.responseType = 'arraybuffer';
+      request.send();
+
+      request.onload = function () {
+        var res = request.response;
+        context.decodeAudioData(res, function (buf) {
+          // AudioNodeを作成
+          var source = context.createBufferSource();
+          // bufferプロパティにAudioBufferを指定
+          source.buffer = buf;
+          // 音声出力先を指定
+          source.connect(context.destination);
+          // AnalyserNodeを指定
+          source.connect(analyser);
+          // 再生開始
+          source.start(0);
+          draw();
+        });
+      };
+
+      var isStop = true;
+
+      var draw = function() {
+        drawVisual = requestAnimationFrame(draw);
+
+        var dataArray = new Uint8Array(analyser.fftSize);
+        // dataArrayが解析されたデータで満たされる
+        analyser.getByteTimeDomainData(dataArray);
+
+        var sliceWidth = canvas.width / analyser.fftSize;
+
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.beginPath();
+        // canvasCtx.moveTo(0, canvas.height / 2);
+
+        for (var i = 0; i < analyser.fftSize; i++) {
+            var x = sliceWidth * i;
+            // dataArrayの中身は0から255の数値
+            var v = dataArray[i] / 128;
+            var y = v * canvas.height / 2;
+            canvasCtx.lineTo(x, y);
+
+            var r = dataArray[i];
+            var g = 255;
+            var b = 255;
+            $('#r').text(r);
+            $('#g').text(g);
+            $('#b').text(b);
+            $(document.body).css('background', 'rgb('+r+','+g+','+b+')');
+        }
+        canvasCtx.stroke();
+      };
+    </script>
   </body>
 </html>
