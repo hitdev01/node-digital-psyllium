@@ -35,7 +35,7 @@ wss.on('connection', function(ws) {
 
   ws.on('message', function(message) {
     console.log('[get message]'+ message);
-    ws.send(message);
+    broadcast(message);
   })
 
   ws.on('close', function() {
@@ -48,6 +48,12 @@ wss.on('connection', function(ws) {
     // clearInterval(id);
   })
 })
+
+function broadcast (message) {
+    connects.forEach(function (socket, i) {
+        socket.send(message);
+    });
+}
 
 setInterval(function chengecolor() {
   var color1;
